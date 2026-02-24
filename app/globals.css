@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+.today-glow {
+  animation: today-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes today-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 12px rgba(45, 106, 79, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(45, 106, 79, 0.35);
+  }
+}
