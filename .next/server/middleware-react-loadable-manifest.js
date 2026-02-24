@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST='{"components/ShareModal.tsx -> html2canvas":{"id":4457,"files":["static/chunks/ad2866b8.a1343deb0eef8820.js"]}}';
+self.__REACT_LOADABLE_MANIFEST="{\"components/ShareModal.tsx -> html2canvas\":{\"id\":\"components/ShareModal.tsx -> html2canvas\",\"files\":[\"static/chunks/_app-pages-browser_node_modules_html2canvas_dist_html2canvas_js.js\"]}}"

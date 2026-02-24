@@ -1,8 +1,8 @@
 {
   "components/ShareModal.tsx -> html2canvas": {
-    "id": 4457,
+    "id": "components/ShareModal.tsx -> html2canvas",
     "files": [
-      "static/chunks/ad2866b8.a1343deb0eef8820.js"
+      "static/chunks/_app-pages-browser_node_modules_html2canvas_dist_html2canvas_js.js"
     ]
   }
 }
