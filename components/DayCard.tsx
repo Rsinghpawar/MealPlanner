@@ -30,11 +30,12 @@ const REMINDER_EDIT_STYLES: Record<ReminderType, string> = {
 
 interface DayCardProps {
   dayPlan: DayPlan;
+  basePlanId: string;
   isToday: boolean;
 }
 
-export default function DayCard({ dayPlan, isToday }: DayCardProps) {
-  const { plan, save } = usePlanEdit(dayPlan);
+export default function DayCard({ dayPlan, basePlanId, isToday }: DayCardProps) {
+  const { plan, save } = usePlanEdit(dayPlan, basePlanId);
   const [showShareModal, setShowShareModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<DayPlan | null>(null);

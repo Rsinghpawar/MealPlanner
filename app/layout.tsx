@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/lib/AuthProvider";
 
 export const metadata: Metadata = {
   title: "12-Day Meal Plan",
@@ -13,7 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-[#f5f5f0] text-[#2d2d2d]">{children}</body>
+      <body className="bg-[#f5f5f0] text-[#2d2d2d]">
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }
