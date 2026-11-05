@@ -7,6 +7,7 @@ import MealRow from "./MealRow";
 import Reminder from "./Reminder";
 import ShareModal from "./ShareModal";
 import { usePlanEdit } from "@/lib/usePlanEdit";
+import { useAuth } from "@/lib/AuthProvider";
 
 const DAY_HEADER_COLORS: Record<DayName, string> = {
   Monday: "bg-orange-100",
@@ -35,29 +36,34 @@ interface DayCardProps {
 }
 
 export default function DayCard({ dayPlan, basePlanId, isToday }: DayCardProps) {
+  const { user } = useAuth();
   const { plan, save } = usePlanEdit(dayPlan, basePlanId);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [draft, setDraft] = useState<DayPlan | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // Editing needs an account; signing out mid-edit drops back to view mode.
+  const canEdit = !!user;
+  const isEditing = editMode && canEdit && draft !== null;
 
   const headerColor = DAY_HEADER_COLORS[dayPlan.day];
 
   /* ── Edit mode helpers ─────────────────────────────── */
   function enterEdit() {
     setDraft(structuredClone(plan));
-    setIsEditing(true);
+    setEditMode(true);
   }
 
   function handleSave() {
     if (!draft) return;
     save(draft);
-    setIsEditing(false);
+    setEditMode(false);
     setDraft(null);
   }
 
   function handleCancel() {
-    setIsEditing(false);
+    setEditMode(false);
     setDraft(null);
   }
 
@@ -102,18 +108,20 @@ export default function DayCard({ dayPlan, basePlanId, isToday }: DayCardProps) 
             <span className="text-[11px] opacity-70 font-normal">Week {dayPlan.week}</span>
             {!isEditing && (
               <>
-                {/* Edit button */}
-                <button
-                  onClick={enterEdit}
-                  className="p-1 rounded-md hover:bg-black/10 transition-colors"
-                  aria-label={`Edit ${dayPlan.day} meal plan`}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                </button>
+                {/* Edit button (signed-in users only) */}
+                {canEdit && (
+                  <button
+                    onClick={enterEdit}
+                    className="p-1 rounded-md hover:bg-black/10 transition-colors"
+                    aria-label={`Edit ${dayPlan.day} meal plan`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                      fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                  </button>
+                )}
                 {/* Share button */}
                 <button
                   onClick={() => setShowShareModal(true)}

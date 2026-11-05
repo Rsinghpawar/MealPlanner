@@ -29,7 +29,12 @@ export function usePlanEdit(basePlan: DayPlan, basePlanId: string) {
 
   // After mount, load from Supabase (fall back to localStorage)
   useEffect(() => {
-    if (!user) return;
+    // Signed out (or never signed in): show the shared base plan, not the
+    // previous user's edits.
+    if (!user) {
+      setPlan(basePlan);
+      return;
+    }
 
     let cancelled = false;
 

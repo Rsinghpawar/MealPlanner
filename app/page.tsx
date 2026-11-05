@@ -29,6 +29,7 @@ interface BasePlanRow {
 
 export default function Home() {
   const { user, loading: authLoading, supabase } = useAuth();
+  const userId = user?.id;
   const [activeWeek, setActiveWeek] = useState(() => getCurrentMealWeek());
 
   // Base plan from Supabase (falls back to hardcoded)
@@ -36,8 +37,10 @@ export default function Home() {
   const [basePlanIds, setBasePlanIds] = useState<Record<string, string>>({});
   const [dataLoading, setDataLoading] = useState(true);
 
+  // Load for everyone, signed in or not. Refetch when the user changes, since
+  // row-level security may return different rows to signed-in users.
   useEffect(() => {
-    if (!user) return;
+    let cancelled = false;
 
     supabase
       .from("base_meal_plans")
@@ -45,7 +48,10 @@ export default function Home() {
       .order("week")
       .order("day")
       .then(({ data, error }) => {
-        if (data && !error) {
+        if (cancelled) return;
+        // An empty result usually means RLS hid the rows from this visitor;
+        // keep the bundled plan rather than showing an empty page.
+        if (data && data.length > 0 && !error) {
           const plans: DayPlan[] = (data as BasePlanRow[]).map((row) => ({
             day: row.day as DayPlan["day"],
             week: row.week,
@@ -65,13 +71,17 @@ export default function Home() {
         }
         setDataLoading(false);
       });
-  }, [user, supabase]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, supabase]);
 
   const todayName = getTodayDayName();
   const currentMealWeek = getCurrentMealWeek();
   const filteredDays = days.filter((d) => d.week === activeWeek);
 
-  if (authLoading || (user && dataLoading)) {
+  if (authLoading || dataLoading) {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <p className="text-sm text-gray-400">Loading meal plan...</p>

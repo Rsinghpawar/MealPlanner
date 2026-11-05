@@ -1,16 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import { TAGS } from "@/data/mealPlan";
 import { useAuth } from "@/lib/AuthProvider";
 import { useRouter } from "next/navigation";
 
+const AUTH_BUTTON_CLASS =
+  "shrink-0 whitespace-nowrap text-[11px] bg-white/20 hover:bg-white/30 transition-colors rounded-lg px-3 py-1.5 mt-1";
+
 export default function Header() {
-  const { user, supabase } = useAuth();
+  const { user, loading, supabase } = useAuth();
   const router = useRouter();
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    router.push("/login");
+    // Stay on the plan; it's public now.
     router.refresh();
   }
 
@@ -26,14 +30,16 @@ export default function Header() {
             {"\u00B7"} Cook-friendly
           </p>
         </div>
-        {user && (
-          <button
-            onClick={handleSignOut}
-            className="text-[11px] bg-white/20 hover:bg-white/30 transition-colors rounded-lg px-3 py-1.5 mt-1"
-          >
-            Sign out
-          </button>
-        )}
+        {!loading &&
+          (user ? (
+            <button onClick={handleSignOut} className={AUTH_BUTTON_CLASS}>
+              Sign out
+            </button>
+          ) : (
+            <Link href="/login" className={AUTH_BUTTON_CLASS}>
+              Log in
+            </Link>
+          ))}
       </div>
       <div className="flex flex-wrap gap-2 mt-3">
         {TAGS.map((tag) => (
