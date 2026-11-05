@@ -30,7 +30,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Match all routes except static files and Next.js internals
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Match all routes except static files, Next.js internals, and the files
+    // that must load without a login: the PWA manifest and service worker
+    // (browsers fetch them without cookies) and the Supabase keep-alive cron.
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|api/keep-alive|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };
