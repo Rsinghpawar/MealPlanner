@@ -6,7 +6,7 @@ import { formatMealText } from "@/lib/formatMealText";
 
 interface ShareModalProps {
   dayPlan: DayPlan;
-  cardRef: RefObject<HTMLDivElement>;
+  cardRef: RefObject<HTMLDivElement | null>;
   onClose: () => void;
 }
 
