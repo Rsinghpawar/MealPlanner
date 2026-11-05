@@ -2,7 +2,14 @@
 
 import { useState, useRef, useCallback, useLayoutEffect, type RefObject } from "react";
 import type { DayPlan } from "@/data/mealPlan";
-import { formatMealText } from "@/lib/formatMealText";
+import {
+  formatMealText,
+  formatRecipeLinks,
+  hasRecipeLinks,
+  type FormatOptions,
+} from "@/lib/formatMealText";
+import { useDisplayPrefs } from "@/lib/DisplayPrefs";
+import Switch from "./Switch";
 
 interface ShareModalProps {
   dayPlan: DayPlan;
@@ -15,8 +22,22 @@ export default function ShareModal({
   cardRef,
   onClose,
 }: ShareModalProps) {
-  const [text, setText] = useState(() => formatMealText(dayPlan));
+  const { foodEmojis } = useDisplayPrefs();
+  const hasRecipes = hasRecipeLinks(dayPlan);
+  // Starts from the app's emoji setting; recipe links go in when there are any.
+  const [options, setOptions] = useState<FormatOptions>(() => ({
+    foodEmojis,
+    recipeLinks: true,
+  }));
+  const [text, setText] = useState(() => formatMealText(dayPlan, options));
   const [isCapturing, setIsCapturing] = useState(false);
+
+  // Changing a toggle rebuilds the message (manual edits to it are replaced).
+  function updateOptions(changes: Partial<FormatOptions>) {
+    const next = { ...options, ...changes };
+    setOptions(next);
+    setText(formatMealText(dayPlan, next));
+  }
   const backdropRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -57,7 +78,8 @@ export default function ShareModal({
 
       const canvas = await html2canvas(cardRef.current, {
         scale: 2,
-        backgroundColor: "#ffffff",
+        // Page colour behind the rounded corners (white, or dark in dark mode)
+        backgroundColor: getComputedStyle(document.body).backgroundColor,
         useCORS: true,
         logging: false,
       });
@@ -76,10 +98,15 @@ export default function ShareModal({
       );
 
       // Try Web Share API (mobile Chrome/Safari with file support)
+      // Links in an image can't be tapped, so send them as text with it.
+      const recipeText =
+        hasRecipes && options.recipeLinks ? formatRecipeLinks(dayPlan) : "";
+
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           title: `${dayPlan.day} \u2014 Week ${dayPlan.week} Meal Plan`,
           files: [file],
+          ...(recipeText ? { text: recipeText } : {}),
         });
       } else {
         // Fallback: download image + open WhatsApp text link
@@ -110,15 +137,15 @@ export default function ShareModal({
       aria-modal="true"
       aria-label={`Share ${dayPlan.day} meal plan`}
     >
-      <div className="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col overflow-hidden">
+      <div className="bg-surface text-ink w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-line-soft">
           <h2 className="text-[15px] font-bold">
             Share {dayPlan.day} {"\u2014"} Week {dayPlan.week}
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-500"
+            className="p-1.5 rounded-full hover:bg-surface-2 transition-colors text-ink-muted"
             aria-label="Close share modal"
           >
             <svg
@@ -140,20 +167,38 @@ export default function ShareModal({
 
         {/* Editable text preview */}
         <div className="flex-1 overflow-y-auto px-4 py-3">
-          <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+          {/* Message options */}
+          <div className="mb-3 rounded-lg bg-surface-2 px-3 py-1.5 divide-y divide-line-soft">
+            {hasRecipes && (
+              <Switch
+                label={"\u{1F3AC} Recipe videos"}
+                description="Add the recipe links under each meal"
+                checked={options.recipeLinks}
+                onChange={(recipeLinks) => updateOptions({ recipeLinks })}
+              />
+            )}
+            <Switch
+              label={"\u{1F60B} Food emojis"}
+              description={"\u{1F95E} \u{1F35A} \u{1F957} next to each dish"}
+              checked={options.foodEmojis}
+              onChange={(foodEmojis) => updateOptions({ foodEmojis })}
+            />
+          </div>
+
+          <label className="text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1.5 block">
             Edit before sharing
           </label>
           <textarea
             ref={textareaRef}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            className="w-full min-h-[12rem] text-[13px] leading-relaxed p-3 rounded-lg border border-gray-200 focus:border-forest focus:ring-1 focus:ring-forest outline-none resize-none font-mono"
+            className="w-full min-h-[12rem] text-[13px] leading-relaxed p-3 rounded-lg border border-line bg-field text-ink focus:border-forest focus:ring-1 focus:ring-forest outline-none resize-none font-mono"
             spellCheck={false}
           />
         </div>
 
         {/* Action buttons */}
-        <div className="px-4 py-3 border-t border-gray-100 flex flex-col gap-2">
+        <div className="px-4 py-3 border-t border-line-soft flex flex-col gap-2">
           <button
             onClick={handleShareText}
             className="w-full py-2.5 rounded-lg bg-[#25D366] text-white font-semibold text-[14px] hover:bg-[#20bd5a] transition-colors flex items-center justify-center gap-2"

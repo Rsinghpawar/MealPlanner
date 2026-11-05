@@ -9,6 +9,8 @@ export type Difficulty = "easy" | "medium" | "hard";
 export interface Meal {
   type: MealType;
   name: string;
+  /** Optional recipe video (YouTube Short / video, Instagram Reel). */
+  recipeUrl?: string;
 }
 
 export interface Reminder {
@@ -54,21 +56,21 @@ export const mealPlan: DayPlan[] = [
     day: "Monday",
     week: 1,
     meals: [
-      { type: "breakfast", name: "Moong Dal + Veg + Paneer Cheela + Cut fruits (Papaya, Watermelon, Pineapple - whichever available)" },
-      { type: "lunch", name: "Rice/Roti + Dal Fry + Egg Bhurji + Cut Salad (Cucumber, Amla)" },
+      { type: "breakfast", name: "Moong Dal Veg Paneer Mix Cheela + Cut fruits" },
+      { type: "lunch", name: "Rice/Roti + Dal Fry + Egg Bhurji + Cut Salad" },
       { type: "dinner", name: "Matar Paneer + Roti" },
     ],
     reminders: [
-      { type: "soak", text: "Soak <strong>Chole</strong> and <strong>Dosa Batter</strong> tonight \u2192 Tuesday meals" },
-      { type: "stock", text: "Check stock: <strong>Paneer, Matar</strong> for tonight\u2019s dinner" },
+      { type: "soak", text: "Soak <strong>Chole</strong> tonight \u2192 Tuesday lunch" },
+      { type: "stock", text: "Check stock: <strong>Paneer, Matar</strong> for tonight\u2019s dinner \u00B7 <strong>Dosa Batter</strong> for Tue breakfast" },
     ],
   },
   {
     day: "Tuesday",
     week: 1,
     meals: [
-      { type: "breakfast", name: "Masala Dosa with sambhar + Cut fruits (Papaya, Watermelon, Pineapple - whichever available)" },
-      { type: "lunch", name: "Rice/Roti + Chole + Egg Bhurji + Cut Salad (Cucumber, Amla)" },
+      { type: "breakfast", name: "Masala Dosa with sambhar + Cut fruits" },
+      { type: "lunch", name: "Rice/Roti + Chole + Egg Bhurji + Cut Salad" },
       { type: "dinner", name: "Egg Curry + Rice/Roti" },
     ],
     reminders: [
@@ -80,8 +82,8 @@ export const mealPlan: DayPlan[] = [
     day: "Wednesday",
     week: 1,
     meals: [
-      { type: "breakfast", name: "Besan Cheela + Paneer Stuffing + Cut fruits (Papaya, Watermelon, Pineapple - whichever available)" },
-      { type: "lunch", name: "Rice/Roti + Mushroom Gravy + Egg Bhurji + Cut Salad (Cucumber, Amla)" },
+      { type: "breakfast", name: "Besan Cheela + Paneer Stuffing + Cut fruits" },
+      { type: "lunch", name: "Rice/Roti + Mushroom Gravy + Egg Bhurji + Cut Salad" },
       { type: "dinner", name: "Aloo Matar + Roti + Paneer Bhurji" },
     ],
     reminders: [
@@ -93,7 +95,7 @@ export const mealPlan: DayPlan[] = [
     week: 1,
     meals: [
       { type: "breakfast", name: "Sprouts salad + Boiled Sweet potatos" },
-      { type: "lunch", name: "Rice/Roti + Palak Dal + Boiled Egg Salad + Cut Salad (Cucumber, Amla)" },
+      { type: "lunch", name: "Rice/Roti + Palak Dal + Boiled Egg Salad + Cut Salad" },
       { type: "dinner", name: "Palak Paneer + Rice/Roti" },
     ],
     reminders: [
@@ -105,7 +107,7 @@ export const mealPlan: DayPlan[] = [
     week: 1,
     meals: [
       { type: "breakfast", name: "Egg Sandwich + Boiled Sweet potatos" },
-      { type: "lunch", name: "Rice/Roti + Mixed Veg Sabzi + Dal + Cut Salad (Cucumber, Amla)" },
+      { type: "lunch", name: "Rice/Roti + Mixed Veg Sabzi + Dal + Cut Salad" },
       { type: "dinner", name: "Matar Paneer + Rice/Roti" },
     ],
     reminders: [
@@ -117,8 +119,8 @@ export const mealPlan: DayPlan[] = [
     day: "Saturday",
     week: 1,
     meals: [
-      { type: "breakfast", name: "Sattu Paratha + Pickle + Curd + Cut fruits (Papaya, Watermelon, Pineapple - whichever available)" },
-      { type: "lunch", name: "Rice/Roti + Black Chana + Curd + Cut Salad (Cucumber, Amla)" },
+      { type: "breakfast", name: "Sattu Paratha + Pickle + Curd + Cut fruits" },
+      { type: "lunch", name: "Rice/Roti + Black Chana + Curd + Cut Salad" },
       { type: "dinner", name: "Chicken Curry + Roti" },
     ],
     reminders: [
@@ -132,8 +134,8 @@ export const mealPlan: DayPlan[] = [
     day: "Monday",
     week: 2,
     meals: [
-      { type: "breakfast", name: "Moong Dal + Veg + Paneer Cheela + Cut fruits (Papaya, Watermelon, Pineapple - whichever available)" },
-      { type: "lunch", name: "Rice/Roti + Chole + Egg Bhurji + Cut Salad (Cucumber, Amla)" },
+      { type: "breakfast", name: "Moong Dal Veg Paneer Mix Cheela + Cut fruits" },
+      { type: "lunch", name: "Rice/Roti + Chole + Egg Bhurji + Cut Salad" },
       { type: "dinner", name: "Egg Curry + Roti" },
     ],
     reminders: [
@@ -145,8 +147,8 @@ export const mealPlan: DayPlan[] = [
     day: "Tuesday",
     week: 2,
     meals: [
-      { type: "breakfast", name: "Besan Cheela + Paneer Stuffing + Cut fruits (Papaya, Watermelon, Pineapple - whichever available)" },
-      { type: "lunch", name: "Rice/Roti + Rajma + Curd + Cut Salad (Cucumber, Amla)" },
+      { type: "breakfast", name: "Besan Cheela + Paneer Stuffing + Cut fruits" },
+      { type: "lunch", name: "Rice/Roti + Rajma + Curd + Cut Salad" },
       { type: "dinner", name: "Chicken Curry + Rice/Roti" },
     ],
     reminders: [
@@ -157,8 +159,8 @@ export const mealPlan: DayPlan[] = [
     day: "Wednesday",
     week: 2,
     meals: [
-      { type: "breakfast", name: "Paneer Bhurji + Roti + Cut fruits (Papaya, Watermelon, Pineapple - whichever available)" },
-      { type: "lunch", name: "Loki kofte gravy + Egg bhurji + Rice/Roti + Cut Salad (Cucumber, Amla)" },
+      { type: "breakfast", name: "Paneer Bhurji + Roti + Cut fruits" },
+      { type: "lunch", name: "Loki kofte gravy + Egg bhurji + Rice/Roti + Cut Salad" },
       { type: "dinner", name: "Matar Paneer + Roti" },
     ],
     reminders: [
@@ -170,7 +172,7 @@ export const mealPlan: DayPlan[] = [
     week: 2,
     meals: [
       { type: "breakfast", name: "Egg Sandwich + Boiled Sweet potatos" },
-      { type: "lunch", name: "Rice/Roti + Egg Curry + Cut Salad (Cucumber, Amla)" },
+      { type: "lunch", name: "Rice/Roti + Egg Curry + Cut Salad" },
       { type: "dinner", name: "Aloo Matar + Roti + Paneer Bhurji" },
     ],
     reminders: [
@@ -182,8 +184,8 @@ export const mealPlan: DayPlan[] = [
     day: "Friday",
     week: 2,
     meals: [
-      { type: "breakfast", name: "Moong Dal + Veg + Paneer Cheela + Cut fruits (Papaya, Watermelon, Pineapple - whichever available)" },
-      { type: "lunch", name: "Rice/Roti + Chole + Egg Bhurji + Cut Salad (Cucumber, Amla)" },
+      { type: "breakfast", name: "Moong Dal Veg Paneer Mix Cheela + Cut fruits" },
+      { type: "lunch", name: "Rice/Roti + Chole + Egg Bhurji + Cut Salad" },
       { type: "dinner", name: "Egg Curry + Rice/Roti" },
     ],
     reminders: [
@@ -195,8 +197,8 @@ export const mealPlan: DayPlan[] = [
     day: "Saturday",
     week: 2,
     meals: [
-      { type: "breakfast", name: "Sattu Paratha + Pickle + Curd + Cut fruits (Papaya, Watermelon, Pineapple - whichever available)" },
-      { type: "lunch", name: "Rice/Roti + Rajma + Curd + Cut Salad (Cucumber, Amla)" },
+      { type: "breakfast", name: "Sattu Paratha + Pickle + Curd + Cut fruits" },
+      { type: "lunch", name: "Rice/Roti + Rajma + Curd + Cut Salad" },
       { type: "dinner", name: "Chicken Curry + Roti + Salad" },
     ],
   },

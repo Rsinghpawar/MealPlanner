@@ -1,31 +1,36 @@
 "use client";
 
 import { useState, useRef } from "react";
-import type { DayPlan, DayName, MealType, ReminderType } from "@/data/mealPlan";
+import type { DayPlan, DayName, Meal, ReminderType } from "@/data/mealPlan";
 import { MEAL_ICONS, REMINDER_ICONS } from "@/data/mealPlan";
-import MealRow from "./MealRow";
+import { normalizeRecipeInput, parseRecipeLink } from "@/lib/recipeLink";
+import MealRow, { MEAL_STYLES } from "./MealRow";
 import Reminder from "./Reminder";
 import ShareModal from "./ShareModal";
+import { RecipeIcon } from "./RecipeLinkChip";
+
+/** Anchor for the "Today" button. */
+export const TODAY_CARD_ID = "today-card";
 
 const DAY_HEADER_COLORS: Record<DayName, string> = {
-  Monday: "bg-orange-100",
-  Tuesday: "bg-green-100",
-  Wednesday: "bg-blue-100",
-  Thursday: "bg-pink-100",
-  Friday: "bg-purple-100",
-  Saturday: "bg-cyan-100",
-};
-
-const MEAL_EDIT_STYLES: Record<MealType, { bg: string; labelColor: string; label: string }> = {
-  breakfast: { bg: "bg-[#fffaf6]", labelColor: "text-meal-breakfast", label: "Breakfast" },
-  lunch:     { bg: "bg-[#f6fcf9]", labelColor: "text-meal-lunch",     label: "Lunch" },
-  dinner:    { bg: "bg-[#f7f7fc]", labelColor: "text-meal-dinner",    label: "Dinner" },
+  Monday: "bg-orange-100 dark:bg-orange-400/15",
+  Tuesday: "bg-green-100 dark:bg-green-400/15",
+  Wednesday: "bg-blue-100 dark:bg-blue-400/15",
+  Thursday: "bg-pink-100 dark:bg-pink-400/15",
+  Friday: "bg-purple-100 dark:bg-purple-400/15",
+  Saturday: "bg-cyan-100 dark:bg-cyan-400/15",
 };
 
 const REMINDER_EDIT_STYLES: Record<ReminderType, string> = {
   soak:  "bg-soak-bg border-l-[3px] border-soak-border text-soak-text",
   stock: "bg-stock-bg border-l-[3px] border-stock-border text-stock-text",
 };
+
+const HEADER_BUTTON_CLASS =
+  "p-1 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors";
+
+const INPUT_CLASS =
+  "w-full rounded px-2 py-1 border border-line bg-field text-ink focus:border-forest focus:ring-1 focus:ring-forest outline-none";
 
 interface DayCardProps {
   dayPlan: DayPlan;
@@ -59,9 +64,26 @@ export default function DayCard({ dayPlan, isToday, canEdit, onSave }: DayCardPr
 
   async function handleSave() {
     if (!draft || saving) return;
+
+    // Recipe links are typed freely while editing; clean them up (or stop
+    // with a message) before anything is saved.
+    const meals: Meal[] = [];
+    for (const meal of draft.meals) {
+      const recipeUrl = normalizeRecipeInput(meal.recipeUrl ?? "");
+      if (recipeUrl === null) {
+        setSaveError(
+          `The ${MEAL_STYLES[meal.type].label.toLowerCase()} recipe link isn't a web link. Paste the full link, like https://youtube.com/shorts/…`
+        );
+        return;
+      }
+      const cleaned: Meal = { type: meal.type, name: meal.name };
+      if (recipeUrl) cleaned.recipeUrl = recipeUrl;
+      meals.push(cleaned);
+    }
+
     setSaving(true);
     setSaveError(null);
-    const error = await onSave(draft);
+    const error = await onSave({ ...draft, meals });
     setSaving(false);
     if (error) {
       // Keep the draft so nothing typed is lost; they can retry or cancel.
@@ -78,9 +100,9 @@ export default function DayCard({ dayPlan, isToday, canEdit, onSave }: DayCardPr
     setSaveError(null);
   }
 
-  function updateMealName(idx: number, value: string) {
+  function updateMeal(idx: number, changes: Partial<Meal>) {
     if (!draft) return;
-    setDraft({ ...draft, meals: draft.meals.map((m, i) => i === idx ? { ...m, name: value } : m) });
+    setDraft({ ...draft, meals: draft.meals.map((m, i) => i === idx ? { ...m, ...changes } : m) });
   }
 
   function updateReminderText(idx: number, value: string) {
@@ -92,7 +114,7 @@ export default function DayCard({ dayPlan, isToday, canEdit, onSave }: DayCardPr
   const ringClass = isEditing
     ? "ring-2 ring-amber-400"
     : isToday
-    ? "ring-2 ring-forest today-glow"
+    ? "ring-2 ring-forest dark:ring-accent today-glow"
     : "";
 
   const displayPlan = isEditing && draft ? draft : plan;
@@ -101,13 +123,14 @@ export default function DayCard({ dayPlan, isToday, canEdit, onSave }: DayCardPr
     <>
       <div
         ref={cardRef}
-        className={`bg-white rounded-xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.07)] flex flex-col ${ringClass}`}
+        id={isToday ? TODAY_CARD_ID : undefined}
+        className={`bg-surface rounded-xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.07)] flex flex-col scroll-mt-20 md:scroll-mt-4 ${ringClass}`}
       >
         {/* ── Header ──────────────────────────────────── */}
         <div className={`px-4 py-3 font-bold text-sm flex justify-between items-center ${headerColor}`}>
           <span className="text-[15px]">
             {isToday && !isEditing && <span className="mr-1">{"\u{1F4CD}"}</span>}
-            {isEditing && <span className="mr-1 text-amber-500">{"\u270F\uFE0F"}</span>}
+            {isEditing && <span className="mr-1 text-amber-500">{"✏️"}</span>}
             {dayPlan.day}
           </span>
           <div className="flex items-center gap-2">
@@ -118,7 +141,7 @@ export default function DayCard({ dayPlan, isToday, canEdit, onSave }: DayCardPr
                 {canEdit && (
                   <button
                     onClick={enterEdit}
-                    className="p-1 rounded-md hover:bg-black/10 transition-colors"
+                    className={HEADER_BUTTON_CLASS}
                     aria-label={`Edit ${dayPlan.day} meal plan`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
@@ -131,7 +154,7 @@ export default function DayCard({ dayPlan, isToday, canEdit, onSave }: DayCardPr
                 {/* Share button */}
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className="p-1 rounded-md hover:bg-black/10 transition-colors"
+                  className={HEADER_BUTTON_CLASS}
                   aria-label={`Share ${dayPlan.day} meal plan`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
@@ -150,18 +173,47 @@ export default function DayCard({ dayPlan, isToday, canEdit, onSave }: DayCardPr
         {!isEditing
           ? displayPlan.meals.map((meal) => <MealRow key={meal.type} meal={meal} />)
           : draft!.meals.map((meal, idx) => {
-              const style = MEAL_EDIT_STYLES[meal.type];
+              const style = MEAL_STYLES[meal.type];
+              const rawLink = meal.recipeUrl ?? "";
+              const normalized = normalizeRecipeInput(rawLink);
+              const link = normalized ? parseRecipeLink(normalized) : null;
               return (
-                <div key={meal.type} className={`px-4 py-2.5 border-t border-gray-100 ${style.bg}`}>
+                <div key={meal.type} className={`px-4 py-2.5 border-t border-line-soft ${style.bg}`}>
                   <div className={`text-[10px] font-bold uppercase tracking-wide mb-1.5 ${style.labelColor}`}>
                     {MEAL_ICONS[meal.type]} {style.label}
                   </div>
                   <input
                     value={meal.name}
-                    onChange={(e) => updateMealName(idx, e.target.value)}
-                    className="w-full text-[13px] font-medium rounded px-2 py-1 border border-gray-200 focus:border-forest focus:ring-1 focus:ring-forest outline-none bg-white leading-snug"
+                    onChange={(e) => updateMeal(idx, { name: e.target.value })}
+                    className={`${INPUT_CLASS} text-[13px] font-medium leading-snug`}
                     placeholder="Meal name"
+                    aria-label={`${style.label} meal name`}
                   />
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    <span className="shrink-0 text-ink-muted">
+                      <RecipeIcon platform={link?.platform ?? "youtube"} />
+                    </span>
+                    <input
+                      type="url"
+                      inputMode="url"
+                      autoComplete="off"
+                      value={rawLink}
+                      onChange={(e) => updateMeal(idx, { recipeUrl: e.target.value })}
+                      className={`${INPUT_CLASS} text-[12px]`}
+                      placeholder="Recipe video link (YouTube / Instagram)"
+                      aria-label={`${style.label} recipe video link`}
+                    />
+                  </div>
+                  {rawLink.trim() !== "" &&
+                    (link ? (
+                      <p className="text-[10px] font-semibold text-green-700 dark:text-green-400 mt-1 ml-5">
+                        {"✓"} {link.label}
+                      </p>
+                    ) : (
+                      <p className="text-[10px] font-semibold text-red-600 dark:text-red-400 mt-1 ml-5">
+                        Paste the full link, like https://youtube.com/shorts/{"…"}
+                      </p>
+                    ))}
                 </div>
               );
             })}
@@ -187,7 +239,7 @@ export default function DayCard({ dayPlan, isToday, canEdit, onSave }: DayCardPr
                       value={reminder.text}
                       onChange={(e) => updateReminderText(idx, e.target.value)}
                       rows={2}
-                      className="flex-1 text-[11px] font-medium leading-relaxed rounded px-1.5 py-0.5 border border-gray-200 focus:border-forest outline-none resize-none bg-white/80"
+                      className="flex-1 text-[11px] font-medium leading-relaxed rounded px-1.5 py-0.5 border border-line focus:border-forest outline-none resize-none bg-field/80 text-ink"
                     />
                   </div>
                 ))}
@@ -196,9 +248,9 @@ export default function DayCard({ dayPlan, isToday, canEdit, onSave }: DayCardPr
 
         {/* ── Save / Cancel ───────────────────────────── */}
         {isEditing && (
-          <div className="px-3 py-2.5 border-t border-gray-100 bg-gray-50">
+          <div className="px-3 py-2.5 border-t border-line-soft bg-surface-2">
             {saveError && (
-              <p role="alert" className="text-[12px] text-red-600 bg-red-50 rounded-lg px-2.5 py-1.5 mb-2">
+              <p role="alert" className="text-[12px] text-red-600 bg-red-50 dark:text-red-300 dark:bg-red-500/15 rounded-lg px-2.5 py-1.5 mb-2">
                 {saveError}
               </p>
             )}
@@ -213,7 +265,7 @@ export default function DayCard({ dayPlan, isToday, canEdit, onSave }: DayCardPr
               <button
                 onClick={handleCancel}
                 disabled={saving}
-                className="flex-1 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 font-semibold text-[13px] hover:bg-gray-100 transition-colors disabled:opacity-50"
+                className="flex-1 py-1.5 rounded-lg bg-surface border border-line text-ink-muted font-semibold text-[13px] hover:bg-surface-2 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>

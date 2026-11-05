@@ -1,5 +1,34 @@
 import type { DayName, DayPlan, MealType } from "@/data/mealPlan";
 import { MEAL_ICONS, REMINDER_ICONS } from "@/data/mealPlan";
+import { withFoodEmojis } from "@/lib/foodEmoji";
+import { parseRecipeLink } from "@/lib/recipeLink";
+
+export interface FormatOptions {
+  /** Add 🥞 🍚 🥗 ... in front of each dish. */
+  foodEmojis: boolean;
+  /** Put each meal's recipe video link under it. */
+  recipeLinks: boolean;
+}
+
+const RECIPE_ICON = "▶️"; // ▶️
+
+/** True when at least one meal of the day has a usable recipe link. */
+export function hasRecipeLinks(dayPlan: DayPlan): boolean {
+  return dayPlan.meals.some((meal) => parseRecipeLink(meal.recipeUrl) !== null);
+}
+
+/** Just the recipe links, e.g. to go with a shared image. */
+export function formatRecipeLinks(dayPlan: DayPlan): string {
+  return dayPlan.meals
+    .map((meal) => {
+      const link = parseRecipeLink(meal.recipeUrl);
+      return link
+        ? `${RECIPE_ICON} ${MEAL_LABELS[meal.type]} recipe: ${link.href}`
+        : null;
+    })
+    .filter((line): line is string => line !== null)
+    .join("\n");
+}
 
 const MEAL_LABELS: Record<MealType, string> = {
   breakfast: "Breakfast",
@@ -47,13 +76,19 @@ function htmlToWhatsApp(html: string): string {
 
 /**
  * Formats a DayPlan into shareable plain-text (WhatsApp-friendly).
- * Meals, then tonight's soak reminders. No day/week heading or stock
- * reminders, to keep it short for the cook.
+ * Meals (each with its recipe link, if any), then tonight's soak reminders.
+ * No day/week heading or stock reminders, to keep it short for the cook.
  */
-export function formatMealText(dayPlan: DayPlan): string {
-  const mealLines = dayPlan.meals.map(
-    (meal) => `${MEAL_ICONS[meal.type]} ${MEAL_LABELS[meal.type]}: ${meal.name}`
-  );
+export function formatMealText(
+  dayPlan: DayPlan,
+  options: FormatOptions = { foodEmojis: false, recipeLinks: true }
+): string {
+  const mealLines = dayPlan.meals.map((meal) => {
+    const name = options.foodEmojis ? withFoodEmojis(meal.name) : meal.name;
+    const line = `${MEAL_ICONS[meal.type]} ${MEAL_LABELS[meal.type]}: ${name}`;
+    const link = options.recipeLinks ? parseRecipeLink(meal.recipeUrl) : null;
+    return link ? `${line}\n${RECIPE_ICON} Recipe: ${link.href}` : line;
+  });
 
   const soakLines = (dayPlan.reminders ?? [])
     .filter((r) => r.type === "soak")

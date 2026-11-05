@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/AuthProvider";
+import { DisplayPrefsProvider, THEME_INIT_SCRIPT } from "@/lib/DisplayPrefs";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import InstallPrompt from "@/components/InstallPrompt";
 
@@ -24,7 +25,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2d6a4f",
+  // Updated by DisplayPrefsProvider when the theme is set manually.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#2d6a4f" },
+    { media: "(prefers-color-scheme: dark)", color: "#1b3d2f" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
@@ -35,9 +40,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-[#f5f5f0] text-[#2d2d2d]">
-        <AuthProvider>{children}</AuthProvider>
+    // The init script sets the theme class before React loads.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
+      <body className="bg-page text-ink">
+        <DisplayPrefsProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </DisplayPrefsProvider>
         <InstallPrompt />
         <ServiceWorkerRegister />
       </body>

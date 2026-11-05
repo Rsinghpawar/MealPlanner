@@ -34,33 +34,33 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-[#f5f5f0]">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-page">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-[#2d2d2d]">
+          <h1 className="text-2xl font-bold text-ink">
             {"\u{1F957}"} Meal Planner
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-ink-muted mt-1">
             Mon–Sat × 2 Weeks · For 3 people
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6 space-y-4"
+          className="bg-surface rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6 space-y-4"
         >
           <h2 className="text-[15px] font-bold text-center">
             {isSignUp ? "Create account" : "Sign in"}
           </h2>
 
           {error && (
-            <div className="text-[12px] text-red-600 bg-red-50 rounded-lg px-3 py-2">
+            <div className="text-[12px] text-red-600 bg-red-50 dark:text-red-300 dark:bg-red-500/15 rounded-lg px-3 py-2">
               {error}
             </div>
           )}
 
           <div>
-            <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide block mb-1">
+            <label className="text-[11px] font-semibold text-ink-muted uppercase tracking-wide block mb-1">
               Email
             </label>
             <input
@@ -68,13 +68,13 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full text-[13px] rounded-lg px-3 py-2 border border-gray-200 focus:border-forest focus:ring-1 focus:ring-forest outline-none"
+              className="w-full text-[13px] rounded-lg px-3 py-2 border border-line bg-field text-ink focus:border-forest focus:ring-1 focus:ring-forest outline-none"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide block mb-1">
+            <label className="text-[11px] font-semibold text-ink-muted uppercase tracking-wide block mb-1">
               Password
             </label>
             <input
@@ -83,7 +83,7 @@ export default function LoginPage() {
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full text-[13px] rounded-lg px-3 py-2 border border-gray-200 focus:border-forest focus:ring-1 focus:ring-forest outline-none"
+              className="w-full text-[13px] rounded-lg px-3 py-2 border border-line bg-field text-ink focus:border-forest focus:ring-1 focus:ring-forest outline-none"
               placeholder="Min 6 characters"
             />
           </div>
@@ -100,7 +100,7 @@ export default function LoginPage() {
               : "Sign in"}
           </button>
 
-          <p className="text-[12px] text-center text-gray-500">
+          <p className="text-[12px] text-center text-ink-muted">
             {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
             <button
               type="button"
@@ -108,7 +108,7 @@ export default function LoginPage() {
                 setIsSignUp(!isSignUp);
                 setError("");
               }}
-              className="text-forest font-semibold hover:underline"
+              className="text-accent font-semibold hover:underline"
             >
               {isSignUp ? "Sign in" : "Sign up"}
             </button>
@@ -118,7 +118,7 @@ export default function LoginPage() {
         <p className="text-center mt-4">
           <Link
             href="/"
-            className="text-[12px] text-gray-500 hover:text-forest hover:underline"
+            className="text-[12px] text-ink-muted hover:text-accent hover:underline"
           >
             {"←"} Back to meal plan
           </Link>
