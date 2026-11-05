@@ -24,7 +24,9 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Match all routes except static files and Next.js internals
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Match all routes except static files, Next.js internals, and requests
+    // that never carry a session, so they skip the Supabase auth check: the
+    // PWA manifest and service worker, and the daily keep-alive cron.
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|api/keep-alive|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };
