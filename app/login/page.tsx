@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -113,6 +114,15 @@ export default function LoginPage() {
             </button>
           </p>
         </form>
+
+        <p className="text-center mt-4">
+          <Link
+            href="/"
+            className="text-[12px] text-gray-500 hover:text-forest hover:underline"
+          >
+            {"←"} Back to meal plan
+          </Link>
+        </p>
       </div>
     </div>
   );

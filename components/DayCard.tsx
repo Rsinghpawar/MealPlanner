@@ -6,7 +6,6 @@ import { MEAL_ICONS, REMINDER_ICONS } from "@/data/mealPlan";
 import MealRow from "./MealRow";
 import Reminder from "./Reminder";
 import ShareModal from "./ShareModal";
-import { usePlanEdit } from "@/lib/usePlanEdit";
 
 const DAY_HEADER_COLORS: Record<DayName, string> = {
   Monday: "bg-orange-100",
@@ -30,45 +29,58 @@ const REMINDER_EDIT_STYLES: Record<ReminderType, string> = {
 
 interface DayCardProps {
   dayPlan: DayPlan;
-  basePlanId: string;
   isToday: boolean;
+  /** Signed in as a plan editor, and this day exists in the database. */
+  canEdit: boolean;
+  /** Saves to the shared plan; resolves to an error message, or null on success. */
+  onSave: (updated: DayPlan) => Promise<string | null>;
 }
 
-export default function DayCard({ dayPlan, basePlanId, isToday }: DayCardProps) {
-  const { plan, save } = usePlanEdit(dayPlan, basePlanId);
+export default function DayCard({ dayPlan, isToday, canEdit, onSave }: DayCardProps) {
+  const plan = dayPlan;
   const [showShareModal, setShowShareModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [draft, setDraft] = useState<DayPlan | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // Signing out mid-edit drops back to view mode.
+  const isEditing = editMode && canEdit && draft !== null;
 
   const headerColor = DAY_HEADER_COLORS[dayPlan.day];
 
   /* ── Edit mode helpers ─────────────────────────────── */
   function enterEdit() {
     setDraft(structuredClone(plan));
-    setIsEditing(true);
+    setSaveError(null);
+    setEditMode(true);
   }
 
-  function handleSave() {
-    if (!draft) return;
-    save(draft);
-    setIsEditing(false);
+  async function handleSave() {
+    if (!draft || saving) return;
+    setSaving(true);
+    setSaveError(null);
+    const error = await onSave(draft);
+    setSaving(false);
+    if (error) {
+      // Keep the draft so nothing typed is lost; they can retry or cancel.
+      setSaveError(error);
+      return;
+    }
+    setEditMode(false);
     setDraft(null);
   }
 
   function handleCancel() {
-    setIsEditing(false);
+    setEditMode(false);
     setDraft(null);
+    setSaveError(null);
   }
 
   function updateMealName(idx: number, value: string) {
     if (!draft) return;
     setDraft({ ...draft, meals: draft.meals.map((m, i) => i === idx ? { ...m, name: value } : m) });
-  }
-
-  function updateMealNote(idx: number, value: string) {
-    if (!draft) return;
-    setDraft({ ...draft, meals: draft.meals.map((m, i) => i === idx ? { ...m, note: value.trimStart() || undefined } : m) });
   }
 
   function updateReminderText(idx: number, value: string) {
@@ -102,18 +114,20 @@ export default function DayCard({ dayPlan, basePlanId, isToday }: DayCardProps) 
             <span className="text-[11px] opacity-70 font-normal">Week {dayPlan.week}</span>
             {!isEditing && (
               <>
-                {/* Edit button */}
-                <button
-                  onClick={enterEdit}
-                  className="p-1 rounded-md hover:bg-black/10 transition-colors"
-                  aria-label={`Edit ${dayPlan.day} meal plan`}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                </button>
+                {/* Edit button (signed-in users only) */}
+                {canEdit && (
+                  <button
+                    onClick={enterEdit}
+                    className="p-1 rounded-md hover:bg-black/10 transition-colors"
+                    aria-label={`Edit ${dayPlan.day} meal plan`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                      fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                  </button>
+                )}
                 {/* Share button */}
                 <button
                   onClick={() => setShowShareModal(true)}
@@ -147,12 +161,6 @@ export default function DayCard({ dayPlan, basePlanId, isToday }: DayCardProps) 
                     onChange={(e) => updateMealName(idx, e.target.value)}
                     className="w-full text-[13px] font-medium rounded px-2 py-1 border border-gray-200 focus:border-forest focus:ring-1 focus:ring-forest outline-none bg-white leading-snug"
                     placeholder="Meal name"
-                  />
-                  <input
-                    value={meal.note ?? ""}
-                    onChange={(e) => updateMealNote(idx, e.target.value)}
-                    className="w-full text-[11px] mt-1 rounded px-2 py-0.5 border border-gray-200 focus:border-forest focus:ring-1 focus:ring-forest outline-none text-gray-500 bg-white"
-                    placeholder="Add note (optional)"
                   />
                 </div>
               );
@@ -188,19 +196,28 @@ export default function DayCard({ dayPlan, basePlanId, isToday }: DayCardProps) 
 
         {/* ── Save / Cancel ───────────────────────────── */}
         {isEditing && (
-          <div className="flex gap-2 px-3 py-2.5 border-t border-gray-100 bg-gray-50">
-            <button
-              onClick={handleSave}
-              className="flex-1 py-1.5 rounded-lg bg-forest text-white font-semibold text-[13px] hover:bg-forest/90 transition-colors"
-            >
-              Save
-            </button>
-            <button
-              onClick={handleCancel}
-              className="flex-1 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 font-semibold text-[13px] hover:bg-gray-100 transition-colors"
-            >
-              Cancel
-            </button>
+          <div className="px-3 py-2.5 border-t border-gray-100 bg-gray-50">
+            {saveError && (
+              <p role="alert" className="text-[12px] text-red-600 bg-red-50 rounded-lg px-2.5 py-1.5 mb-2">
+                {saveError}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex-1 py-1.5 rounded-lg bg-forest text-white font-semibold text-[13px] hover:bg-forest/90 transition-colors disabled:opacity-50"
+              >
+                {saving ? "Saving..." : "Save"}
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={saving}
+                className="flex-1 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 font-semibold text-[13px] hover:bg-gray-100 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createMiddlewareClient } from "@/lib/supabase/server";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { supabase, response } = createMiddlewareClient(request);
 
   // Refresh the auth session (extends cookie lifetime)
@@ -11,13 +11,7 @@ export async function middleware(request: NextRequest) {
 
   const isLoginPage = request.nextUrl.pathname === "/login";
 
-  // Not authenticated and not on login → redirect to login
-  if (!user && !isLoginPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
-
+  // The meal plan is public; only editing needs an account.
   // Authenticated and on login → redirect to home
   if (user && isLoginPage) {
     const url = request.nextUrl.clone();
