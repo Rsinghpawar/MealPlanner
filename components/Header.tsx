@@ -9,7 +9,7 @@ const AUTH_BUTTON_CLASS =
   "shrink-0 whitespace-nowrap text-[11px] bg-white/20 hover:bg-white/30 transition-colors rounded-lg px-3 py-1.5 mt-1";
 
 export default function Header() {
-  const { user, loading, supabase } = useAuth();
+  const { user, loading, isEditor, supabase } = useAuth();
   const router = useRouter();
 
   async function handleSignOut() {
@@ -32,9 +32,19 @@ export default function Header() {
         </div>
         {!loading &&
           (user ? (
-            <button onClick={handleSignOut} className={AUTH_BUTTON_CLASS}>
-              Sign out
-            </button>
+            <div className="shrink-0 flex flex-col items-end">
+              <button onClick={handleSignOut} className={AUTH_BUTTON_CLASS}>
+                Sign out
+              </button>
+              {isEditor === false && (
+                <span
+                  className="text-[10px] opacity-70 mt-1"
+                  title="Ask the plan's owner to add your account as an editor"
+                >
+                  View only
+                </span>
+              )}
+            </div>
           ) : (
             <Link href="/login" className={AUTH_BUTTON_CLASS}>
               Log in

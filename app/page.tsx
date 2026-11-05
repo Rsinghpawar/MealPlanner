@@ -1,81 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Header from "@/components/Header";
 import WeekToggle from "@/components/WeekToggle";
 import Legend from "@/components/Legend";
 import DayCard from "@/components/DayCard";
 import MentionsSection from "@/components/MentionsSection";
-import { mealPlan, mentions, type DayPlan, type DayName } from "@/data/mealPlan";
+import { mentions } from "@/data/mealPlan";
 import { getCurrentMealWeek, getTodayDayName } from "@/lib/dateUtils";
 import { useAuth } from "@/lib/AuthProvider";
-
-const DAY_ORDER: Record<DayName, number> = {
-  Monday: 0,
-  Tuesday: 1,
-  Wednesday: 2,
-  Thursday: 3,
-  Friday: 4,
-  Saturday: 5,
-};
-
-interface BasePlanRow {
-  id: string;
-  day: string;
-  week: number;
-  meals: DayPlan["meals"];
-  reminders: DayPlan["reminders"] | null;
-}
+import { dayKey, useMealPlan } from "@/lib/useMealPlan";
 
 export default function Home() {
-  const { user, loading: authLoading, supabase } = useAuth();
-  const userId = user?.id;
+  const { loading: authLoading, isEditor } = useAuth();
+  const { days, loading: dataLoading, saveDay, canSaveDay } = useMealPlan();
   const [activeWeek, setActiveWeek] = useState(() => getCurrentMealWeek());
-
-  // Base plan from Supabase (falls back to hardcoded)
-  const [days, setDays] = useState<DayPlan[]>(mealPlan);
-  const [basePlanIds, setBasePlanIds] = useState<Record<string, string>>({});
-  const [dataLoading, setDataLoading] = useState(true);
-
-  // Load for everyone, signed in or not. Refetch when the user changes, since
-  // row-level security may return different rows to signed-in users.
-  useEffect(() => {
-    let cancelled = false;
-
-    supabase
-      .from("base_meal_plans")
-      .select("id, day, week, meals, reminders")
-      .order("week")
-      .order("day")
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        // An empty result usually means RLS hid the rows from this visitor;
-        // keep the bundled plan rather than showing an empty page.
-        if (data && data.length > 0 && !error) {
-          const plans: DayPlan[] = (data as BasePlanRow[]).map((row) => ({
-            day: row.day as DayPlan["day"],
-            week: row.week,
-            meals: row.meals,
-            reminders: row.reminders ?? undefined,
-          }));
-          const idMap: Record<string, string> = {};
-          (data as BasePlanRow[]).forEach((row) => {
-            idMap[`${row.week}-${row.day}`] = row.id;
-          });
-          plans.sort(
-            (a, b) =>
-              a.week - b.week || DAY_ORDER[a.day] - DAY_ORDER[b.day]
-          );
-          setDays(plans);
-          setBasePlanIds(idMap);
-        }
-        setDataLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [userId, supabase]);
 
   const todayName = getTodayDayName();
   const currentMealWeek = getCurrentMealWeek();
@@ -98,9 +37,10 @@ export default function Home() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 py-5 md:px-8">
         {filteredDays.map((dayPlan) => (
           <DayCard
-            key={`${dayPlan.week}-${dayPlan.day}`}
+            key={dayKey(dayPlan)}
             dayPlan={dayPlan}
-            basePlanId={basePlanIds[`${dayPlan.week}-${dayPlan.day}`] ?? ""}
+            canEdit={isEditor === true && canSaveDay(dayPlan)}
+            onSave={saveDay}
             isToday={
               dayPlan.day === todayName && dayPlan.week === currentMealWeek
             }

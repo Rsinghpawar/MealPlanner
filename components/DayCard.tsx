@@ -6,8 +6,6 @@ import { MEAL_ICONS, REMINDER_ICONS } from "@/data/mealPlan";
 import MealRow from "./MealRow";
 import Reminder from "./Reminder";
 import ShareModal from "./ShareModal";
-import { usePlanEdit } from "@/lib/usePlanEdit";
-import { useAuth } from "@/lib/AuthProvider";
 
 const DAY_HEADER_COLORS: Record<DayName, string> = {
   Monday: "bg-orange-100",
@@ -31,20 +29,23 @@ const REMINDER_EDIT_STYLES: Record<ReminderType, string> = {
 
 interface DayCardProps {
   dayPlan: DayPlan;
-  basePlanId: string;
   isToday: boolean;
+  /** Signed in as a plan editor, and this day exists in the database. */
+  canEdit: boolean;
+  /** Saves to the shared plan; resolves to an error message, or null on success. */
+  onSave: (updated: DayPlan) => Promise<string | null>;
 }
 
-export default function DayCard({ dayPlan, basePlanId, isToday }: DayCardProps) {
-  const { user } = useAuth();
-  const { plan, save } = usePlanEdit(dayPlan, basePlanId);
+export default function DayCard({ dayPlan, isToday, canEdit, onSave }: DayCardProps) {
+  const plan = dayPlan;
   const [showShareModal, setShowShareModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [draft, setDraft] = useState<DayPlan | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Editing needs an account; signing out mid-edit drops back to view mode.
-  const canEdit = !!user;
+  // Signing out mid-edit drops back to view mode.
   const isEditing = editMode && canEdit && draft !== null;
 
   const headerColor = DAY_HEADER_COLORS[dayPlan.day];
@@ -52,12 +53,21 @@ export default function DayCard({ dayPlan, basePlanId, isToday }: DayCardProps) 
   /* ── Edit mode helpers ─────────────────────────────── */
   function enterEdit() {
     setDraft(structuredClone(plan));
+    setSaveError(null);
     setEditMode(true);
   }
 
-  function handleSave() {
-    if (!draft) return;
-    save(draft);
+  async function handleSave() {
+    if (!draft || saving) return;
+    setSaving(true);
+    setSaveError(null);
+    const error = await onSave(draft);
+    setSaving(false);
+    if (error) {
+      // Keep the draft so nothing typed is lost; they can retry or cancel.
+      setSaveError(error);
+      return;
+    }
     setEditMode(false);
     setDraft(null);
   }
@@ -65,6 +75,7 @@ export default function DayCard({ dayPlan, basePlanId, isToday }: DayCardProps) 
   function handleCancel() {
     setEditMode(false);
     setDraft(null);
+    setSaveError(null);
   }
 
   function updateMealName(idx: number, value: string) {
@@ -185,19 +196,28 @@ export default function DayCard({ dayPlan, basePlanId, isToday }: DayCardProps) 
 
         {/* ── Save / Cancel ───────────────────────────── */}
         {isEditing && (
-          <div className="flex gap-2 px-3 py-2.5 border-t border-gray-100 bg-gray-50">
-            <button
-              onClick={handleSave}
-              className="flex-1 py-1.5 rounded-lg bg-forest text-white font-semibold text-[13px] hover:bg-forest/90 transition-colors"
-            >
-              Save
-            </button>
-            <button
-              onClick={handleCancel}
-              className="flex-1 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 font-semibold text-[13px] hover:bg-gray-100 transition-colors"
-            >
-              Cancel
-            </button>
+          <div className="px-3 py-2.5 border-t border-gray-100 bg-gray-50">
+            {saveError && (
+              <p role="alert" className="text-[12px] text-red-600 bg-red-50 rounded-lg px-2.5 py-1.5 mb-2">
+                {saveError}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex-1 py-1.5 rounded-lg bg-forest text-white font-semibold text-[13px] hover:bg-forest/90 transition-colors disabled:opacity-50"
+              >
+                {saving ? "Saving..." : "Save"}
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={saving}
+                className="flex-1 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 font-semibold text-[13px] hover:bg-gray-100 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
       </div>
