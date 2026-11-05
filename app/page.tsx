@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import WeekToggle from "@/components/WeekToggle";
 import Legend from "@/components/Legend";
-import DayCard from "@/components/DayCard";
+import DayCard, { TODAY_CARD_ID } from "@/components/DayCard";
 import MentionsSection from "@/components/MentionsSection";
 import { mentions } from "@/data/mealPlan";
 import { getCurrentMealWeek, getTodayDayName } from "@/lib/dateUtils";
@@ -15,10 +15,26 @@ export default function Home() {
   const { loading: authLoading, isEditor } = useAuth();
   const { days, loading: dataLoading, saveDay, canSaveDay } = useMealPlan();
   const [activeWeek, setActiveWeek] = useState(() => getCurrentMealWeek());
+  // Set by the Today button; the scroll waits until the right week is showing.
+  const [scrollToToday, setScrollToToday] = useState(false);
 
   const todayName = getTodayDayName();
   const currentMealWeek = getCurrentMealWeek();
   const filteredDays = days.filter((d) => d.week === activeWeek);
+
+  useEffect(() => {
+    if (!scrollToToday) return;
+    setScrollToToday(false);
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document
+      .getElementById(TODAY_CARD_ID)
+      ?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  }, [scrollToToday, activeWeek]);
+
+  function goToToday() {
+    setActiveWeek(currentMealWeek);
+    setScrollToToday(true);
+  }
 
   if (authLoading || dataLoading) {
     return (
@@ -31,7 +47,11 @@ export default function Home() {
   return (
     <main>
       <Header />
-      <WeekToggle activeWeek={activeWeek} onWeekChange={setActiveWeek} />
+      <WeekToggle
+        activeWeek={activeWeek}
+        onWeekChange={setActiveWeek}
+        onToday={todayName ? goToToday : undefined}
+      />
       <Legend />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 py-5 md:px-8">

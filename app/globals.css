@@ -2,8 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Colour tokens as "r g b" so Tailwind opacity modifiers work (bg-surface/80). */
+:root {
+  --c-page: 245 245 240;
+  --c-surface: 255 255 255;
+  --c-surface-2: 249 250 251;
+  --c-field: 255 255 255;
+  --c-line: 229 231 235;
+  --c-line-soft: 243 244 246;
+  --c-ink: 45 45 45;
+  --c-ink-muted: 107 114 128;
+  --c-accent: 45 106 79;
+  --c-header: 45 106 79;
+
+  --c-meal-breakfast: 224 123 57;
+  --c-meal-lunch: 45 106 79;
+  --c-meal-dinner: 74 78 154;
+  --c-meal-breakfast-bg: 255 250 246;
+  --c-meal-lunch-bg: 246 252 249;
+  --c-meal-dinner-bg: 247 247 252;
+
+  --c-soak-bg: 255 248 225;
+  --c-soak-text: 146 64 14;
+  --c-stock-bg: 254 242 242;
+  --c-stock-text: 153 27 27;
+
+  color-scheme: light;
+}
+
+.dark {
+  --c-page: 16 20 18;
+  --c-surface: 27 32 29;
+  --c-surface-2: 34 40 36;
+  --c-field: 19 23 21;
+  --c-line: 55 64 59;
+  --c-line-soft: 40 47 43;
+  --c-ink: 229 231 226;
+  --c-ink-muted: 156 163 158;
+  --c-accent: 116 198 157;
+  --c-header: 27 61 47;
+
+  --c-meal-breakfast: 244 162 97;
+  --c-meal-lunch: 116 198 157;
+  --c-meal-dinner: 165 168 240;
+  --c-meal-breakfast-bg: 37 30 25;
+  --c-meal-lunch-bg: 24 36 30;
+  --c-meal-dinner-bg: 28 29 44;
+
+  --c-soak-bg: 54 41 15;
+  --c-soak-text: 252 211 120;
+  --c-stock-bg: 58 24 24;
+  --c-stock-text: 254 178 178;
+
+  color-scheme: dark;
+}
+
 body {
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* Food emojis next to dish names; turned off from the settings menu. */
+html[data-food-emojis="off"] .food-emoji {
+  display: none;
 }
 
 .today-glow {
@@ -17,5 +77,19 @@ body {
   }
   50% {
     box-shadow: 0 0 22px rgba(45, 106, 79, 0.35);
+  }
+}
+
+.dark .today-glow {
+  animation-name: today-pulse-dark;
+}
+
+@keyframes today-pulse-dark {
+  0%,
+  100% {
+    box-shadow: 0 0 12px rgba(116, 198, 157, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(116, 198, 157, 0.3);
   }
 }

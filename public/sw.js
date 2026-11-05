@@ -32,6 +32,10 @@ const OFFLINE_HTML = `<!doctype html>
   p { font-size: 14px; color: #6b7280; margin: 0 0 20px; }
   button { background: #2d6a4f; color: #fff; border: 0; border-radius: 8px; padding: 10px 20px;
            font-size: 14px; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #101412; color: #e5e7e2; }
+    p { color: #9ca39e; }
+  }
 </style>
 </head>
 <body>

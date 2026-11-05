@@ -91,7 +91,7 @@ export default function InstallPrompt() {
       aria-label="Install app"
       className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
     >
-      <div className="mx-auto max-w-md bg-white rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.15)] p-3 flex items-center gap-3">
+      <div className="mx-auto max-w-md bg-surface rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.15)] p-3 flex items-center gap-3">
         <img
           src="/icons/icon-192.png"
           alt=""
@@ -100,15 +100,15 @@ export default function InstallPrompt() {
           className="rounded-lg shrink-0"
         />
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-bold text-[#2d2d2d]">
+          <p className="text-[13px] font-bold text-ink">
             Install Meal Plan
           </p>
           {installEvent ? (
-            <p className="text-[12px] text-gray-500">
+            <p className="text-[12px] text-ink-muted">
               Open it from your home screen like an app.
             </p>
           ) : (
-            <p className="text-[12px] text-gray-500">
+            <p className="text-[12px] text-ink-muted">
               Tap{" "}
               <ShareIcon />{" "}
               <span className="font-semibold">Share</span>, then{" "}
@@ -127,7 +127,7 @@ export default function InstallPrompt() {
         <button
           onClick={dismiss}
           aria-label="Dismiss"
-          className="shrink-0 text-gray-400 hover:text-gray-600 text-[18px] leading-none px-1"
+          className="shrink-0 text-ink-muted hover:text-ink text-[18px] leading-none px-1"
         >
           {"×"}
         </button>
