@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, type RefObject } from "react";
+import { useState, useRef, useCallback, useLayoutEffect, type RefObject } from "react";
 import type { DayPlan } from "@/data/mealPlan";
 import { formatMealText } from "@/lib/formatMealText";
 
@@ -18,6 +18,16 @@ export default function ShareModal({
   const [text, setText] = useState(() => formatMealText(dayPlan));
   const [isCapturing, setIsCapturing] = useState(false);
   const backdropRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Grow the preview to fit the whole message so nothing (like the soak
+  // reminders at the end) is hidden below a scroll.
+  useLayoutEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    ta.style.height = `${ta.scrollHeight + ta.offsetHeight - ta.clientHeight}px`;
+  }, [text]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === backdropRef.current) onClose();
@@ -134,9 +144,10 @@ export default function ShareModal({
             Edit before sharing
           </label>
           <textarea
+            ref={textareaRef}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            className="w-full h-48 text-[13px] leading-relaxed p-3 rounded-lg border border-gray-200 focus:border-forest focus:ring-1 focus:ring-forest outline-none resize-none font-mono"
+            className="w-full min-h-[12rem] text-[13px] leading-relaxed p-3 rounded-lg border border-gray-200 focus:border-forest focus:ring-1 focus:ring-forest outline-none resize-none font-mono"
             spellCheck={false}
           />
         </div>

@@ -72,11 +72,6 @@ export default function DayCard({ dayPlan, basePlanId, isToday }: DayCardProps) 
     setDraft({ ...draft, meals: draft.meals.map((m, i) => i === idx ? { ...m, name: value } : m) });
   }
 
-  function updateMealNote(idx: number, value: string) {
-    if (!draft) return;
-    setDraft({ ...draft, meals: draft.meals.map((m, i) => i === idx ? { ...m, note: value.trimStart() || undefined } : m) });
-  }
-
   function updateReminderText(idx: number, value: string) {
     if (!draft?.reminders) return;
     setDraft({ ...draft, reminders: draft.reminders.map((r, i) => i === idx ? { ...r, text: value } : r) });
@@ -155,12 +150,6 @@ export default function DayCard({ dayPlan, basePlanId, isToday }: DayCardProps) 
                     onChange={(e) => updateMealName(idx, e.target.value)}
                     className="w-full text-[13px] font-medium rounded px-2 py-1 border border-gray-200 focus:border-forest focus:ring-1 focus:ring-forest outline-none bg-white leading-snug"
                     placeholder="Meal name"
-                  />
-                  <input
-                    value={meal.note ?? ""}
-                    onChange={(e) => updateMealNote(idx, e.target.value)}
-                    className="w-full text-[11px] mt-1 rounded px-2 py-0.5 border border-gray-200 focus:border-forest focus:ring-1 focus:ring-forest outline-none text-gray-500 bg-white"
-                    placeholder="Add note (optional)"
                   />
                 </div>
               );

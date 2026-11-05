@@ -20,9 +20,6 @@ export default function MealRow({ meal }: MealRowProps) {
         {MEAL_ICONS[meal.type]} {style.label}
       </div>
       <div className="text-[13px] font-medium leading-snug">{meal.name}</div>
-      {meal.note && (
-        <div className="text-[11px] text-gray-400 mt-0.5">{meal.note}</div>
-      )}
     </div>
   );
 }
