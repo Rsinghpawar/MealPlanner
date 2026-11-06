@@ -103,5 +103,8 @@ export function useMealPlan() {
     [rowIds]
   );
 
-  return { days, loading, saveDay, canSaveDay };
+  /** False when showing the bundled plan because the database didn't load. */
+  const fromDatabase = Object.keys(rowIds).length > 0;
+
+  return { days, loading, fromDatabase, saveDay, canSaveDay };
 }

@@ -5,12 +5,13 @@ import { TAGS } from "@/data/mealPlan";
 import { useAuth } from "@/lib/AuthProvider";
 import { useRouter } from "next/navigation";
 import DisplaySettings from "./DisplaySettings";
+import EditAccessInfo from "./EditAccessInfo";
 
 const AUTH_BUTTON_CLASS =
   "shrink-0 whitespace-nowrap text-[11px] bg-white/20 hover:bg-white/30 transition-colors rounded-lg px-3 py-1.5 mt-1";
 
 export default function Header() {
-  const { user, loading, isEditor, supabase } = useAuth();
+  const { user, loading, supabase } = useAuth();
   const router = useRouter();
 
   async function handleSignOut() {
@@ -39,14 +40,7 @@ export default function Header() {
                 <button onClick={handleSignOut} className={AUTH_BUTTON_CLASS}>
                   Sign out
                 </button>
-                {isEditor === false && (
-                  <span
-                    className="text-[10px] opacity-70 mt-1"
-                    title="Ask the plan's owner to add your account as an editor"
-                  >
-                    View only
-                  </span>
-                )}
+                <EditAccessInfo />
               </div>
             ) : (
               <Link href="/login" className={AUTH_BUTTON_CLASS}>

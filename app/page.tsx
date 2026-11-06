@@ -13,7 +13,7 @@ import { dayKey, useMealPlan } from "@/lib/useMealPlan";
 
 export default function Home() {
   const { loading: authLoading, isEditor } = useAuth();
-  const { days, loading: dataLoading, saveDay, canSaveDay } = useMealPlan();
+  const { days, loading: dataLoading, fromDatabase, saveDay, canSaveDay } = useMealPlan();
   const [activeWeek, setActiveWeek] = useState(() => getCurrentMealWeek());
   // Set by the Today button; the scroll waits until the right week is showing.
   const [scrollToToday, setScrollToToday] = useState(false);
@@ -53,6 +53,17 @@ export default function Home() {
         onToday={todayName ? goToToday : undefined}
       />
       <Legend />
+
+      {isEditor === true && !fromDatabase && (
+        <p
+          role="status"
+          className="mx-4 md:mx-8 mt-3 rounded-lg bg-stock-bg text-stock-text border-l-[3px] border-stock-border px-3 py-2 text-[12px] font-medium leading-snug"
+        >
+          Editing is off: the meal plan didn&apos;t load from the database, so this is
+          the built-in copy. Check your connection (or whether Supabase is paused) and
+          reload.
+        </p>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 py-5 md:px-8">
         {filteredDays.map((dayPlan) => (
