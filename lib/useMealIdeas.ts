@@ -1,45 +1,59 @@
 import { useEffect, useState } from "react";
-import type { MealIdea, MealIdeasResponse } from "@/lib/mealIdeas";
+import type { IdeaKind, IdeaSource, MealIdea, MealIdeasResponse } from "@/lib/mealIdeas";
 
-// One request per page load, shared by every Shuffle panel.
-let pending: Promise<MealIdea[]> | null = null;
+// One request per kind (breakfast / main) per page load, shared by every
+// Shuffle panel. Only the kind being shuffled is fetched, which keeps
+// spoonacular's daily quota for the meals people actually shuffle.
+const pending = new Map<IdeaKind, Promise<MealIdeasResponse>>();
 
-function loadIdeas(): Promise<MealIdea[]> {
-  if (!pending) {
-    pending = fetch("/api/meal-ideas")
+function loadIdeas(kind: IdeaKind): Promise<MealIdeasResponse> {
+  let request = pending.get(kind);
+  if (!request) {
+    request = fetch(`/api/meal-ideas?for=${kind}`)
       .then((res) => {
         if (!res.ok) throw new Error(`meal ideas ${res.status}`);
         return res.json() as Promise<MealIdeasResponse>;
       })
-      .then((body) => body.ideas)
       .catch((err) => {
-        pending = null; // let the next Shuffle try again
+        pending.delete(kind); // let the next Shuffle try again
         throw err;
       });
+    pending.set(kind, request);
   }
-  return pending;
+  return request;
 }
 
 export type MealIdeasState =
-  | { status: "loading"; ideas: [] }
-  | { status: "ready"; ideas: MealIdea[] }
-  | { status: "error"; ideas: [] };
+  | { status: "loading"; ideas: []; sources: [] }
+  | { status: "ready"; ideas: MealIdea[]; sources: IdeaSource[] }
+  | { status: "error"; ideas: []; sources: [] };
 
-/** Online meal ideas, fetched the first time a Shuffle panel opens. */
-export function useMealIdeas(enabled: boolean): MealIdeasState {
-  const [state, setState] = useState<MealIdeasState>({ status: "loading", ideas: [] });
+/** Online meal ideas of one kind, fetched the first time a Shuffle panel opens. */
+export function useMealIdeas(kind: IdeaKind): MealIdeasState {
+  const [state, setState] = useState<MealIdeasState>({
+    status: "loading",
+    ideas: [],
+    sources: [],
+  });
 
   useEffect(() => {
-    if (!enabled) return;
     let cancelled = false;
-    loadIdeas().then(
-      (ideas) => !cancelled && setState({ status: "ready", ideas }),
-      () => !cancelled && setState({ status: "error", ideas: [] })
+    setState({ status: "loading", ideas: [], sources: [] });
+    loadIdeas(kind).then(
+      (body) => {
+        if (cancelled) return;
+        // Sources that actually contributed ideas, for the credit line.
+        const used = (Object.keys(body.sources) as IdeaSource[]).filter(
+          (source) => (body.sources[source]?.count ?? 0) > 0
+        );
+        setState({ status: "ready", ideas: body.ideas, sources: used });
+      },
+      () => !cancelled && setState({ status: "error", ideas: [], sources: [] })
     );
     return () => {
       cancelled = true;
     };
-  }, [enabled]);
+  }, [kind]);
 
   return state;
 }

@@ -21,12 +21,12 @@ const RULES: [RegExp, string][] = [
   [/sprout/i, "\u{1F331}"], // 🌱
   [/chole|chana|rajma|beans|lobia/i, "\u{1FAD8}"], // 🫘
   [/\bdaa?l\b|sambh?ar/i, "\u{1F372}"], // 🍲
-  [/rice|pulao|biryani|khichdi/i, "\u{1F35A}"], // 🍚
+  [/rice|pulao|biryani|khichdi|poha/i, "\u{1F35A}"], // 🍚 (poha is flattened rice)
   [/paratha|roti|chapati|naan|phulka/i, "\u{1FAD3}"], // 🫓
   [/aloo|potato/i, "\u{1F954}"], // 🥔
   [/fruit/i, "\u{1F349}"], // 🍉
   [/salad|cucumber/i, "\u{1F957}"], // 🥗
-  [/curd|raita|yogh?urt|dahi/i, "\u{1F963}"], // 🥣
+  [/curd|raita|yogh?urt|dahi|upma|dalia|porridge|oats/i, "\u{1F963}"], // 🥣
   [/pickle|achar/i, "\u{1F336}\u{FE0F}"], // 🌶️ (not 🫙: that's the soak reminder icon)
   [/\bveg|sabzi|sabji/i, "\u{1F966}"], // 🥦
   [/curry|gravy/i, "\u{1F35B}"], // 🍛

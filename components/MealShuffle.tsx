@@ -11,6 +11,7 @@ import {
   suggestionPair,
   type Suggestion,
 } from "@/lib/mealSuggestions";
+import { ideaKind, SOURCE_LINKS } from "@/lib/mealIdeas";
 import { parseRecipeLink } from "@/lib/recipeLink";
 import { useMealIdeas } from "@/lib/useMealIdeas";
 import MealName from "./MealName";
@@ -26,12 +27,13 @@ interface MealShuffleProps {
 
 /**
  * Two alternatives for one of today's meals: one from the household's plan
- * and one easy Indian dish from TheMealDB. "Shuffle again" moves to the next
+ * and one easy Indian dish found online (TheMealDB, plus spoonacular when it's
+ * set up). "Shuffle again" moves to the next
  * pair; the order is shuffled once per opening, so nothing repeats until
  * every option has been shown.
  */
 export default function MealShuffle({ meal, days, label, onClose }: MealShuffleProps) {
-  const ideas = useMealIdeas(true);
+  const ideas = useMealIdeas(ideaKind(meal.type));
   const [round, setRound] = useState(0);
 
   const plan = useMemo(() => shuffled(planOptions(days, meal)), [days, meal]);
@@ -103,14 +105,25 @@ export default function MealShuffle({ meal, days, label, onClose }: MealShuffleP
           <ShuffleIcon />
           Shuffle again
         </button>
-        <a
-          href="https://www.themealdb.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[10px] text-ink-muted hover:underline"
-        >
-          Online ideas: TheMealDB
-        </a>
+        {ideas.sources.length > 0 && (
+          // Credit line; spoonacular's free plan requires a link back.
+          <p className="text-[10px] text-ink-muted text-right">
+            Online ideas:{" "}
+            {ideas.sources.map((source, i) => (
+              <span key={source}>
+                {i > 0 && " \u00B7 "}
+                <a
+                  href={SOURCE_LINKS[source].href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline-offset-2 hover:underline"
+                >
+                  {SOURCE_LINKS[source].label}
+                </a>
+              </span>
+            ))}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -134,7 +147,7 @@ function SuggestionCard({ suggestion, current }: { suggestion: Suggestion; curre
     <div className="rounded-lg bg-surface-2 px-3 py-2.5 flex gap-2.5">
       {!isPlan && suggestion.idea.thumbnail && (
         <img
-          src={`${suggestion.idea.thumbnail}/small`}
+          src={suggestion.idea.thumbnail}
           alt=""
           width={48}
           height={48}
@@ -146,7 +159,11 @@ function SuggestionCard({ suggestion, current }: { suggestion: Suggestion; curre
         <p className="text-[10px] font-bold uppercase tracking-wide text-ink-muted">
           {isPlan
             ? `\u{1F4CB} From your plan · ${suggestion.day.slice(0, 3)}, week ${suggestion.week}`
-            : `\u{1F310} New idea · ${suggestion.idea.category} · ${suggestion.idea.ingredients.length} ingredients`}
+            : `\u{1F310} New idea · ${suggestion.idea.category} · ${
+                suggestion.idea.readyInMinutes !== null
+                  ? `${suggestion.idea.readyInMinutes} min`
+                  : `${suggestion.idea.ingredients.length} ingredients`
+              }`}
         </p>
         <p className="text-[13px] font-semibold leading-snug mt-0.5">
           <MealName name={name} />
