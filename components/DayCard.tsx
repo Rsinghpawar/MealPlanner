@@ -39,9 +39,11 @@ interface DayCardProps {
   canEdit: boolean;
   /** Saves to the shared plan; resolves to an error message, or null on success. */
   onSave: (updated: DayPlan) => Promise<string | null>;
+  /** The whole plan, for the Shuffle suggestions on today's card. */
+  allDays: DayPlan[];
 }
 
-export default function DayCard({ dayPlan, isToday, canEdit, onSave }: DayCardProps) {
+export default function DayCard({ dayPlan, isToday, canEdit, onSave, allDays }: DayCardProps) {
   const plan = dayPlan;
   const [showShareModal, setShowShareModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -171,7 +173,13 @@ export default function DayCard({ dayPlan, isToday, canEdit, onSave }: DayCardPr
 
         {/* ── Meals ───────────────────────────────────── */}
         {!isEditing
-          ? displayPlan.meals.map((meal) => <MealRow key={meal.type} meal={meal} />)
+          ? displayPlan.meals.map((meal) => (
+              <MealRow
+                key={meal.type}
+                meal={meal}
+                shuffleFrom={isToday ? allDays : undefined}
+              />
+            ))
           : draft!.meals.map((meal, idx) => {
               const style = MEAL_STYLES[meal.type];
               const rawLink = meal.recipeUrl ?? "";

@@ -17,6 +17,24 @@ export function hasRecipeLinks(dayPlan: DayPlan): boolean {
   return dayPlan.meals.some((meal) => parseRecipeLink(meal.recipeUrl) !== null);
 }
 
+/** WhatsApp message for swapping one of today's meals, from the Shuffle panel. */
+export function formatSwapMessage(
+  type: MealType,
+  name: string,
+  insteadOf: string,
+  recipeUrl: string | null | undefined,
+  foodEmojis: boolean
+): string {
+  const show = (meal: string) => (foodEmojis ? withFoodEmojis(meal) : meal);
+  const lines = [
+    `${MEAL_ICONS[type]} ${MEAL_LABELS[type]} today: ${show(name)}`,
+    `(instead of ${insteadOf})`,
+  ];
+  const link = parseRecipeLink(recipeUrl);
+  if (link) lines.push(`${RECIPE_ICON} Recipe: ${link.href}`);
+  return lines.join("\n");
+}
+
 /** Just the recipe links, e.g. to go with a shared image. */
 export function formatRecipeLinks(dayPlan: DayPlan): string {
   return dayPlan.meals

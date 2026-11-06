@@ -72,6 +72,7 @@ export default function Home() {
             dayPlan={dayPlan}
             canEdit={isEditor === true && canSaveDay(dayPlan)}
             onSave={saveDay}
+            allDays={days}
             isToday={
               dayPlan.day === todayName && dayPlan.week === currentMealWeek
             }

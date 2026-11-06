@@ -10,6 +10,8 @@ const RULES: [RegExp, string][] = [
   [/cheela|chilla|dosa|uttapam|pancake/i, "\u{1F95E}"], // 🥞
   [/egg bhurji|omelet/i, "\u{1F373}"], // 🍳
   [/chicken/i, "\u{1F357}"], // 🍗
+  [/fish|prawn|shrimp/i, "\u{1F41F}"], // 🐟
+  [/baingan|brinjal|eggplant/i, "\u{1F346}"], // 🍆
   [/\beggs?\b/i, "\u{1F95A}"], // 🥚
   [/sweet potato/i, "\u{1F360}"], // 🍠
   [/kofte|kofta/i, "\u{1F9C6}"], // 🧆
